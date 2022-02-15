@@ -1,5 +1,5 @@
 import { Greetings } from '@/handlers/greetings';
 
-export default {
-  Greetings
-}
+export default [
+  Greetings,
+]

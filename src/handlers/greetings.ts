@@ -1,19 +1,8 @@
-import { Handler } from '@/interfaces/Handler';
+import { BaseHandler } from '@/infrastructure/base/BaseHandler';
+import { Context } from 'telegraf';
 
-export class Greetings implements Handler {
-    constructor() {
-
-    }
-
-    install() {
-
-    }
-
-    uninstall() {
-
-    }
-
-    handler() {
-
-    }
+export class Greetings extends BaseHandler {
+  async handleMessage(ctx: Context) {
+    await ctx.reply('Привет!');
+  }
 }
