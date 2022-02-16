@@ -1,5 +1,5 @@
-import { Greetings } from '@/handlers/greetings';
+import { GreetingsHandler } from '@/handlers/greetings';
 
 export default [
-  Greetings,
+  GreetingsHandler,
 ]

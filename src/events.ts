@@ -1,5 +1,7 @@
 export enum Events {
   MESSAGE = 'message',
+  CALLBACK_QUERY = 'callback_query',
+  INLINE_QUERY = 'inline_query',
 }
 
 type Subscribers = {
