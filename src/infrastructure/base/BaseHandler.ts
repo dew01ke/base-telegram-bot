@@ -6,7 +6,7 @@ import { log } from '@/utils/logger';
 export interface Handler {
   handleMessage?(ctx: Context): void;
   handlerInlineQuery?(ctx: Context): void;
-  handleCallbackQuery?(ctx: Context): void;
+  handleCallbackQuery?(ctx: Context, actionName: string): void;
 }
 
 export class BaseHandler implements Handler {
@@ -34,7 +34,7 @@ export class BaseHandler implements Handler {
 
     events.subscribe(Events.CALLBACK_QUERY, (ctx: Context) => {
       if (this.isHandlerActive(ctx.chat.id)) {
-        this.handleCallbackQuery(ctx);
+        this.handleCallbackQuery(ctx, ctx.callbackQuery['data']);
       }
     });
   }
@@ -47,7 +47,7 @@ export class BaseHandler implements Handler {
     log(`Default inline query handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
   }
 
-  handleCallbackQuery(ctx: Context) {
+  handleCallbackQuery(ctx: Context, actionName: string) {
     log(`Default callback query handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
   }
 }
