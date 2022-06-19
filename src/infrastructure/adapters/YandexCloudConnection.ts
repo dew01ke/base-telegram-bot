@@ -2,9 +2,8 @@ import { Telegraf } from 'telegraf';
 import { info, error } from '@/utils/logger';
 import config from '@/infrastructure/config';
 
-export function setup(bot: Telegraf) {
-  bot.telegram.deleteWebhook();
-  bot.telegram.setWebhook(`https://functions.yandexcloud.net/${config.FUNCTION_ID}`);
+export function debug() {
+  return JSON.stringify(config, null, 3);
 }
 
 export function handle(bot: Telegraf) {
@@ -22,7 +21,7 @@ export function handle(bot: Telegraf) {
 
     return {
       statusCode: 200,
-      body: '',
+      body: debug(),
     };
   }
 }

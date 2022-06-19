@@ -2,3 +2,4 @@
 /node_modules/
 .idea
 serverless-environment.yml
+/.serverless/

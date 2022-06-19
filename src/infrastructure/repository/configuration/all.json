@@ -1,6 +1,0 @@
-{
-  "enabled": true,
-  "chatId": null,
-  "admins": [],
-  "handlers": ["greetings"]
-}

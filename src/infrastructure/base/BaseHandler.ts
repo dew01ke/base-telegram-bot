@@ -1,7 +1,7 @@
 import { Context } from 'telegraf';
-import { ActiveHandlers } from '@/infrastructure/repository/configuration';
 import { EventEmitter, Events } from '@/utils/events';
 import { log } from '@/utils/logger';
+import { Rule, Rules, RuleType } from '@/rules';
 
 export interface Handler {
   handleMessage?(ctx: Context): void;
@@ -12,28 +12,44 @@ export interface Handler {
 export class BaseHandler implements Handler {
   public name: string;
 
-  private isHandlerActive(chatId: number): boolean {
-    return this.activeHandlers[this.name].includes(chatId) || this.activeHandlers[this.name].includes(null);
+  private isHandlerActive(type: string, chatId: number): boolean {
+    const rule: Rule = this.rules[this.name];
+
+    switch (rule.type) {
+      case RuleType.ENABLED: {
+        return (rule.ids?.includes(chatId) ?? true);
+      }
+
+      case RuleType.ONLY_PERSONAL: {
+        return type === rule.type && (rule.ids?.includes(chatId) ?? true);
+      }
+
+      case RuleType.ONLY_GROUP: {
+        return type === rule.type && (rule.ids?.includes(chatId) ?? true);
+      }
+    }
+
+    return false;
   }
 
   constructor(
     private readonly events: EventEmitter,
-    private readonly activeHandlers: ActiveHandlers,
+    private readonly rules: Rules,
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
-      if (this.isHandlerActive(ctx.chat.id)) {
+      if (this.isHandlerActive(ctx.chat.type, ctx.chat.id)) {
         this.handleMessage(ctx);
       }
     });
 
     events.subscribe(Events.INLINE_QUERY, (ctx: Context) => {
-      if (this.isHandlerActive(ctx.chat.id)) {
+      if (this.isHandlerActive(ctx.chat.type, ctx.chat.id)) {
         this.handlerInlineQuery(ctx);
       }
     });
 
     events.subscribe(Events.CALLBACK_QUERY, (ctx: Context) => {
-      if (this.isHandlerActive(ctx.chat.id)) {
+      if (this.isHandlerActive(ctx.chat.type, ctx.chat.id)) {
         this.handleCallbackQuery(ctx, ctx.callbackQuery['data']);
       }
     });
