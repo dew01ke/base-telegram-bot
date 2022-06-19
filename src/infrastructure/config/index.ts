@@ -1,4 +1,12 @@
+export enum Mode {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production'
+}
+
 export default {
-  BOT_TOKEN: '',
-  ADMIN_ID: '131313,1312313,1313'.split(','),
+  MODE: process.env.NODE_ENV = 'production' ? Mode.PRODUCTION : Mode.DEVELOPMENT,
+  FUNCTION_ID: process.env.FUNCTION_ID ,
+  BOT_USE_POLLING: process.env.BOT_USE_POLLING === 'true' ?? true,
+  BOT_TOKEN: process.env.BOT_TOKEN,
+  BOT_ADMIN: String(process.env.BOT_ADMIN).split(','),
 }

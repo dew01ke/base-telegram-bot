@@ -1,0 +1,30 @@
+service: telegram-bot
+frameworkVersion: "3"
+
+provider:
+  name: yandex-cloud
+  runtime: nodejs16
+
+plugins:
+  - "@yandex-cloud/serverless-plugin"
+
+package:
+  patterns:
+    - '!**'
+    - package.json
+    - package-lock.json
+    - dist/*.js
+
+functions:
+  bot:
+    handler: dist/index.handler
+    memorySize: 128
+    timeout: 5
+    account: function-sa
+    environment: ${file(./serverless-environment.yml):environment}
+
+resources:
+  function-sa:
+    type: yc::ServiceAccount
+    roles:
+      - editor

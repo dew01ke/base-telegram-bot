@@ -1,6 +1,6 @@
 import { Context } from 'telegraf';
 import { ActiveHandlers } from '@/infrastructure/repository/configuration';
-import { EventEmitter, Events } from '@/events';
+import { EventEmitter, Events } from '@/utils/events';
 import { log } from '@/utils/logger';
 
 export interface Handler {
