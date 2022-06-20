@@ -1,6 +1,5 @@
 import { Context, Telegraf } from 'telegraf';
 import { EventEmitter, Events } from '@/utils/events';
-import { rules } from '@/rules';
 import { handle } from '@/infrastructure/adapters/YandexCloudConnection';
 import { info } from '@/utils/logger';
 import config from '@/infrastructure/config';
@@ -8,7 +7,7 @@ import Handlers from '@/handlers';
 
 const bot = new Telegraf(config.BOT_TOKEN);
 const events = new EventEmitter();
-const handlers = Handlers.map(Handler => (new Handler(events, rules)).name);
+const handlers = Handlers.map(Handler => (new Handler(events)).name);
 
 [Events.MESSAGE, Events.CALLBACK_QUERY, Events.INLINE_QUERY].forEach((eventName) => {
   bot.on(eventName, (ctx: Context) => {

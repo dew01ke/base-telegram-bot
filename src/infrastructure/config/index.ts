@@ -1,3 +1,5 @@
+import { safeJsonParse } from '@/utils/json';
+
 export enum Mode {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production'
@@ -9,4 +11,5 @@ export default {
   BOT_USE_POLLING: process.env.BOT_USE_POLLING === 'true' ?? true,
   BOT_TOKEN: process.env.BOT_TOKEN,
   BOT_ADMIN: String(process.env.BOT_ADMIN).split(','),
+  RULES: safeJsonParse(String(process.env.RULES || {})),
 }
