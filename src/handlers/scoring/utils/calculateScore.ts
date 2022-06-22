@@ -11,6 +11,7 @@ enum Actions {
 }
 
 enum Modifications {
+  DESCRIPTION = 'description',
   MY_FORWARD = 'my_forward',
   OTHER_USER_FORWARD = 'other_user_forward',
   CHANNEL_FORWARD = 'channel_forward',
@@ -26,6 +27,7 @@ const SCORES = {
   [Actions.FILE]: 1,
   [Actions.PHOTO]: 1,
 
+  [Modifications.DESCRIPTION]: 1,
   [Modifications.MY_FORWARD]: 1,
   [Modifications.OTHER_USER_FORWARD]: 1,
   [Modifications.CHANNEL_FORWARD]: 1,
@@ -93,7 +95,7 @@ export function buildTags(ctx: Context) {
   isVideoShot(ctx) && tags.push(Actions.VIDEO_SHOT);
   isVoiceShot(ctx) && tags.push(Actions.VOICE_SHOT);
 
-  withDescription(ctx) && tags.push(Modifications.MY_FORWARD);
+  withDescription(ctx) && tags.push(Modifications.DESCRIPTION);
   withMyForward(ctx) && tags.push(Modifications.MY_FORWARD);
   withOtherUserForward(ctx) && tags.push(Modifications.OTHER_USER_FORWARD);
   withChannelForward(ctx) && tags.push(Modifications.CHANNEL_FORWARD);
@@ -102,12 +104,12 @@ export function buildTags(ctx: Context) {
   return tags;
 }
 
-export function calculateScore(ctx: Context): number {
+export function calculateScore(ctx: Context) {
   const tags = buildTags(ctx);
   const score = tags.reduce((score, tag) => (score + SCORES[tag]), 0);
 
   console.log('ctx', ctx);
   console.log('tags', tags, score);
 
-  return score;
+  return [score, tags];
 }
