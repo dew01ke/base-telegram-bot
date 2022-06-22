@@ -15,7 +15,7 @@ const handlers = Handlers.map(Handler => (new Handler(events)).name);
   });
 });
 
-info(`Bot has been started!`);
+info(`Bot has been started! Polling flag: ${config.BOT_USE_POLLING}`);
 info(`Available handlers: ${handlers.length} => ${handlers}`);
 
 if (config.BOT_USE_POLLING) {
