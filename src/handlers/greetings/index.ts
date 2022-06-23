@@ -1,6 +1,7 @@
 import { Context, Markup } from 'telegraf';
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
+import { parseMentionCommand } from '@/utils/telegram';
 
 export class GreetingsHandler extends BaseHandler {
   public name: string = 'greetings';
@@ -8,13 +9,29 @@ export class GreetingsHandler extends BaseHandler {
   public adminAction: string = 'adminAction';
 
   async handleMessage(ctx: Context) {
-    await ctx.reply(
-      'Привет!',
-      Markup.inlineKeyboard([
-        Markup.button.callback('Поприветсвовать', this.greetingAction),
-        Markup.button.callback('Только для админов', this.adminAction),
-      ])
-    );
+    const { command, payload } = parseMentionCommand(ctx);
+    switch (command) {
+      case 'help': {
+        await ctx.reply('Чем помочь?');
+
+        break;
+      }
+
+      case 'admin': {
+        await this.notifyAdmin(ctx);
+
+        break;
+      }
+
+      default: {
+        await ctx.reply(
+          'Привет!',
+          Markup.inlineKeyboard([
+            Markup.button.callback('Поприветсвовать', this.greetingAction)
+          ])
+        );
+      }
+    }
   }
 
   async handleCallbackQuery(ctx: Context, actionName: string) {

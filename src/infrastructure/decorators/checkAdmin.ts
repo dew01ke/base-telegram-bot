@@ -1,4 +1,5 @@
 import { isAdmin } from '@/rules';
+import { getUserId } from '@/utils/telegram';
 
 export function checkAdmin(target: any, key: string, descriptor: PropertyDescriptor) {
   if (!descriptor) {
@@ -8,7 +9,7 @@ export function checkAdmin(target: any, key: string, descriptor: PropertyDescrip
 
   descriptor.value = function (...args) {
     const ctx = args[0];
-    const userId = ctx?.message?.from?.id || ctx?.update?.callback_query?.from?.id;
+    const userId = getUserId(ctx);
 
     if (!isAdmin(this.name, userId)) {
       console.warn('User with id', userId, 'is not admin');
