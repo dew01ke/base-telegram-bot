@@ -10,6 +10,7 @@ export enum RuleType {
 export interface Rule {
   type: RuleType;
   ids?: number[];
+  admins?: number[];
 }
 
 export interface Rules {
@@ -35,4 +36,10 @@ export function isHandlerActive(name: string, type: 'channel' | 'private' | 'gro
   }
 
   return false;
+}
+
+export function isAdmin(name: string, userId: number): boolean {
+  const rule: Rule = config.RULES[name];
+
+  return rule?.admins?.includes(userId) || false;
 }
