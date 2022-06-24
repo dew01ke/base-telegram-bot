@@ -1,7 +1,7 @@
-import { GreetingsHandler } from '@/handlers/greetings';
-import { ScoringHandler } from '@/handlers/scoring';
+import { Greetings } from '@/handlers/greetings';
+import { SquidGame } from '@/handlers/squid-game';
 
 export default [
-  GreetingsHandler,
-  ScoringHandler,
+  Greetings,
+  SquidGame,
 ]

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Context, Telegraf } from 'telegraf';
 import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
 import { handle } from '@/infrastructure/adapters/YandexCloudConnection';

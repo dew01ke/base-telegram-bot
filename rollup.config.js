@@ -7,14 +7,17 @@ import renameNodeModules from 'rollup-plugin-rename-node-modules';
 export default [
   {
     input: 'src/index.ts',
+    external: ['typeorm', 'telegraf', 'pg'],
     output: {
       dir: 'dist',
       format: 'cjs',
-      sourcemap: true,
-      preserveModules: false
+      sourcemap: false,
+      preserveModules: false,
     },
     plugins: [
-      resolve(),
+      resolve({
+        preferBuiltins: true,
+      }),
       commonjs(),
       json(),
       typescript({
