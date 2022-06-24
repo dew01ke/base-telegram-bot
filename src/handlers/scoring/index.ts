@@ -1,28 +1,12 @@
 import { Context } from 'telegraf';
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
-import { calculateScore } from '@/handlers/scoring/utils/calculateScore';
-import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
-import { parseMentionCommand } from '@/utils/telegram';
-import { getUserId } from '@/utils/telegram';
+import { buildActivityTags, calculateScore } from '@/handlers/scoring/utils/calculateScore';
 
 export class ScoringHandler extends BaseHandler {
   public name: string = 'scoring';
-  private state: object = {};
 
   async handleMessage(ctx: Context) {
-    const { command, payload } = parseMentionCommand(ctx);
-
-    switch (command) {
-      case 'stats': {
-        await this.showStatistics(ctx);
-
-        break;
-      }
-
-      default: {
-        await this.calculateMessage(ctx);
-      }
-    }
+    await this.calculateMessage(ctx);
   }
 
   async handleCommonEvent(ctx: Context) {
@@ -30,17 +14,6 @@ export class ScoringHandler extends BaseHandler {
   }
 
   async calculateMessage(ctx: Context) {
-    const userId = getUserId(ctx);
-
-    if (!this.state[userId]) {
-      this.state[userId] = 0;
-    }
-
-    this.state[userId] += calculateScore(ctx);
-  }
-
-  @checkAdmin
-  async showStatistics(ctx: Context) {
-    await ctx.reply(JSON.stringify(this.state));
+    console.log('score', buildActivityTags(ctx), calculateScore(ctx));
   }
 }

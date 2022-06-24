@@ -16,6 +16,8 @@ enum Modifications {
   OTHER_USER_FORWARD = 'other_user_forward',
   CHANNEL_FORWARD = 'channel_forward',
   EDITED_MESSAGE = 'edited_message',
+  MY_REPLY = 'my_reply',
+  OTHER_USER_REPLY = 'other_user_reply',
 }
 
 const SCORES = {
@@ -31,15 +33,17 @@ const SCORES = {
   [Modifications.MY_FORWARD]: 1,
   [Modifications.OTHER_USER_FORWARD]: 1,
   [Modifications.CHANNEL_FORWARD]: 1,
-  [Modifications.EDITED_MESSAGE]: 1
+  [Modifications.EDITED_MESSAGE]: 1,
+  [Modifications.MY_REPLY]: 1,
+  [Modifications.OTHER_USER_REPLY]: 1,
 }
 
 function isText(ctx) {
-  return !!ctx?.update?.message?.text;
+  return Boolean(ctx?.update?.message?.text);
 }
 
 function isSticker(ctx) {
-  return !!ctx?.update?.message?.sticker;
+  return Boolean(ctx?.update?.message?.sticker);
 }
 
 function isGif(ctx) {
@@ -59,7 +63,7 @@ function isVideoShot(ctx) {
 }
 
 function isVoiceShot(ctx) {
-  return Boolean(ctx?.update?.message?.video_note);
+  return Boolean(ctx?.update?.message?.voice);
 }
 
 function withDescription(ctx) {
@@ -84,7 +88,17 @@ function withChannelForward(ctx) {
   return Boolean(ctx?.update?.message?.forward_from_chat);
 }
 
-export function buildTags(ctx: Context) {
+function withMyReply(ctx) {
+  return Boolean(ctx?.update?.message?.reply_to_message)
+    && Boolean(ctx?.update?.message?.reply_to_message?.from?.id === ctx?.update?.message?.from?.id);
+}
+
+function withOtherUserReply(ctx) {
+  return Boolean(ctx?.update?.message?.reply_to_message)
+    && Boolean(ctx?.update?.message?.reply_to_message?.from?.id !== ctx?.update?.message?.from?.id);
+}
+
+export function buildActivityTags(ctx: Context) {
   const tags = [];
 
   isText(ctx) && tags.push(Actions.TEXT);
@@ -100,16 +114,14 @@ export function buildTags(ctx: Context) {
   withOtherUserForward(ctx) && tags.push(Modifications.OTHER_USER_FORWARD);
   withChannelForward(ctx) && tags.push(Modifications.CHANNEL_FORWARD);
   withEdit(ctx) && tags.push(Modifications.EDITED_MESSAGE);
+  withMyReply(ctx) && tags.push(Modifications.MY_REPLY);
+  withOtherUserReply(ctx) && tags.push(Modifications.OTHER_USER_REPLY);
 
   return tags;
 }
 
 export function calculateScore(ctx: Context) {
-  const tags = buildTags(ctx);
-  const score = tags.reduce((score, tag) => (score + SCORES[tag]), 0);
+  const tags = buildActivityTags(ctx);
 
-  console.log('ctx', ctx);
-  console.log('tags', tags, score);
-
-  return [score, tags];
+  return tags.reduce((score, tag) => (score + SCORES[tag]), 0);
 }

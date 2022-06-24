@@ -1,4 +1,5 @@
 import { Context } from 'telegraf';
+// @ts-ignore
 import { MessageUpdate } from 'typegram/update';
 
 export function parseMentionCommand(ctx: Context<MessageUpdate>) {
