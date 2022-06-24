@@ -5,7 +5,7 @@ import config from '@/infrastructure/config';
 
 export const Database = new DataSource({
   ssl: true,
-  type: "postgres",
+  type: 'postgres',
   host: config.DATABASE_HOST,
   port: config.DATABASE_PORT,
   username: config.DATABASE_USERNAME,

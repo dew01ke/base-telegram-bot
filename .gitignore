@@ -3,3 +3,4 @@
 .idea
 serverless-environment.yml
 /.serverless/
+/run.sh
