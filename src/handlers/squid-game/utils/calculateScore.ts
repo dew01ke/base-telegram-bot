@@ -19,13 +19,25 @@ export const SCORES = {
   [Modifications.OTHER_USER_REPLY]: 1,
 }
 
-export function calculateScoreByUsers(activities: Activity[]) {
+export interface MemberScore {
+  userId: number;
+  score: number;
+}
+
+export interface MemberScores {
+  [key: string]: MemberScore;
+}
+
+export function calculateScoreByUsers(activities: Activity[]): MemberScores {
   return activities.reduce((userScore, activity) => {
     if (!userScore[activity.userId]) {
-      userScore[activity.userId] = 0;
+      userScore[activity.userId] = {
+        userId: activity.userId,
+        score: 0,
+      };
     }
 
-    userScore[activity.userId] += (SCORES[activity.action] || 0);
+    userScore[activity.userId].score += (SCORES[activity.action] || 0);
 
     return userScore;
   }, {});

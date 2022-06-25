@@ -4,8 +4,8 @@ import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { getAction, getModifications } from '@/handlers/squid-game/utils/activityTagger';
 import { getChatId, getUserId, replyTo } from '@/utils/telegram';
-import { calculateScoreByUsers } from '@/handlers/squid-game/utils/calculateScore';
-import { checkAdmin } from "@/infrastructure/decorators/checkAdmin";
+import { calculateScoreByUsers, MemberScores } from '@/handlers/squid-game/utils/calculateScore';
+import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 
 export class SquidGame extends BaseHandler {
   public name: string = 'squid-game';
@@ -26,14 +26,14 @@ export class SquidGame extends BaseHandler {
   }
 
   async handleMessage(ctx: Context) {
-    await this.extractAction(ctx);
+    await this.extractMemberAction(ctx);
   }
 
   async handleCommonEvent(ctx: Context) {
-    await this.extractAction(ctx);
+    await this.extractMemberAction(ctx);
   }
 
-  async extractAction(ctx: Context) {
+  async extractMemberAction(ctx: Context) {
     const activityRepository = Database.getRepository(Activity);
 
     const activity = new Activity();
@@ -47,17 +47,25 @@ export class SquidGame extends BaseHandler {
     await activityRepository.insert(activity);
   }
 
-  async replyWithScore(ctx: Context) {
+  async buildScoreTable(ctx: Context): Promise<MemberScores> {
     const activityRepository = Database.getRepository(Activity);
     const activities = await activityRepository.findBy({
       month: this.month,
       chatId: getChatId(ctx)
     });
-    const scores = calculateScoreByUsers(activities);
-    const message = Object.entries(scores).map(([userId, score]) => {
-      return `${userId} = ${score}`;
-    }).join('\r\n');
 
-    await replyTo(ctx, message);
+    return calculateScoreByUsers(activities);
+  }
+
+  async replyWithScore(ctx: Context) {
+    const memberScores = await this.buildScoreTable(ctx);
+    const members = [];
+
+    for (const memberScore of Object.values(memberScores)) {
+      const member = await ctx.telegram.getChatMember(getChatId(ctx), memberScore.userId);
+      members.push(`${member.user.first_name} ${member.user.last_name} (${member.user.username}) - ${memberScore.score}`);
+    }
+
+    await replyTo(ctx, members.join('\n'));
   }
 }
