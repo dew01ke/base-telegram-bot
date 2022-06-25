@@ -2,7 +2,7 @@ import { Context } from 'telegraf';
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
-import { getAction, getModifications } from '@/handlers/squid-game/utils/activityTagger';
+import { getAction, getModifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { getChatId, getUserId, replyTo } from '@/utils/telegram';
 import { calculateScoreByUsers, MemberScores } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
@@ -19,7 +19,7 @@ export class SquidGame extends BaseHandler {
   }
 
   @checkAdmin
-  async handleCommand(ctx: Context, name: string) {
+  async handleCommand(ctx: Context, name: string, payload: string[]) {
     if (name === 'активность') {
       await this.replyWithScore(ctx);
     }
