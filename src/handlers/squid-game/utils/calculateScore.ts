@@ -1,4 +1,5 @@
-import { Actions, Activity, Modifications } from '@/handlers/squid-game/utils/activityTagger';
+import { Actions, Modifications } from '@/handlers/squid-game/utils/activityTagger';
+import { Activity } from '@/handlers/squid-game/entities/Activity';
 
 export const SCORES = {
   [Actions.TEXT]: 1,
@@ -18,6 +19,14 @@ export const SCORES = {
   [Modifications.OTHER_USER_REPLY]: 1,
 }
 
-export function calculateScoreByActivity(tags: Activity[]) {
-  return tags.reduce((score, tag) => (score + SCORES[tag]), 0);
+export function calculateScoreByUsers(activities: Activity[]) {
+  return activities.reduce((userScore, activity) => {
+    if (!userScore[activity.userId]) {
+      userScore[activity.userId] = 0;
+    }
+
+    userScore[activity.userId] += (SCORES[activity.action] || 0);
+
+    return userScore;
+  }, {});
 }

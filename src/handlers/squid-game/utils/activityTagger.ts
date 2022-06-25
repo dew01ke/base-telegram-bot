@@ -20,8 +20,6 @@ export enum Modifications {
   OTHER_USER_REPLY = 'other_user_reply',
 }
 
-export type Activity = Actions | Modifications;
-
 function isText(ctx) {
   return Boolean(ctx?.update?.message?.text);
 }
@@ -82,16 +80,22 @@ function withOtherUserReply(ctx) {
     && Boolean(ctx?.update?.message?.reply_to_message?.from?.id !== ctx?.update?.message?.from?.id);
 }
 
-export function buildActivityTags(ctx: Context) {
-  const tags = [];
+export function getAction(ctx: Context): string {
+  let tags = [];
 
   isText(ctx) && tags.push(Actions.TEXT);
   isSticker(ctx) && tags.push(Actions.STICKER);
   isGif(ctx) && tags.push(Actions.GIF);
-  isFile(ctx) && tags.push(Actions.FILE);
+  isFile(ctx) && !isGif(ctx) && tags.push(Actions.FILE);
   isPhoto(ctx) && tags.push(Actions.PHOTO);
   isVideoShot(ctx) && tags.push(Actions.VIDEO_SHOT);
   isVoiceShot(ctx) && tags.push(Actions.VOICE_SHOT);
+
+  return tags[0];
+}
+
+export function getModifications(ctx: Context): Modifications[] {
+  let tags = [];
 
   withDescription(ctx) && tags.push(Modifications.DESCRIPTION);
   withMyForward(ctx) && tags.push(Modifications.MY_FORWARD);

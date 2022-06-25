@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from '@/infrastructure/database/strategies/snake-naming.strategy';
-import { Score } from '@/handlers/squid-game/entities/Score';
+import { Activity } from '@/handlers/squid-game/entities/Activity';
 import config from '@/infrastructure/config';
 
 export const Database = new DataSource({
@@ -15,7 +15,7 @@ export const Database = new DataSource({
   logging: true,
   namingStrategy: new SnakeNamingStrategy(),
   entities: [
-    Score
+    Activity
   ],
   extra: {
     ssl: {

@@ -2,8 +2,10 @@ import { Context } from 'telegraf';
 import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
 import { log } from '@/utils/logger';
 import { isHandlerActive } from '@/rules';
+import { parseMentionCommand } from '@/utils/telegram';
 
 export interface Handler {
+  handleCommand?(ctx: Context, name: string, payload: string[]): void;
   handleMessage?(ctx: Context): void;
   handlerInlineQuery?(ctx: Context): void;
   handleCallbackQuery?(ctx: Context, actionName: string): void;
@@ -18,7 +20,13 @@ export class BaseHandler implements Handler {
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
       if (isHandlerActive(this.name, ctx.chat.type, ctx.chat.id)) {
-        this.handleMessage(ctx);
+        const { command, payload } = parseMentionCommand(ctx);
+
+        if (command) {
+          this.handleCommand(ctx, command, payload);
+        } else {
+          this.handleMessage(ctx);
+        }
       }
     });
 
@@ -39,6 +47,10 @@ export class BaseHandler implements Handler {
         this.handleCommonEvent(ctx);
       }
     });
+  }
+
+  handleCommand(ctx: Context, name: string, payload: string[]) {
+    log(`Default command handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
   }
 
   handleMessage(ctx: Context) {

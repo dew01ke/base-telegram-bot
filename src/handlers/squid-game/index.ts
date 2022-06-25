@@ -1,60 +1,63 @@
 import { Context } from 'telegraf';
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
-import { Score } from '@/handlers/squid-game/entities/Score';
-import { buildActivityTags} from '@/handlers/squid-game/utils/activityTagger';
-import { getChatId, getUserId } from '@/utils/telegram';
-import { calculateScoreByActivity } from '@/handlers/squid-game/utils/calculateScore';
+import { Activity } from '@/handlers/squid-game/entities/Activity';
+import { getAction, getModifications } from '@/handlers/squid-game/utils/activityTagger';
+import { getChatId, getUserId, replyTo } from '@/utils/telegram';
+import { calculateScoreByUsers } from '@/handlers/squid-game/utils/calculateScore';
+import { checkAdmin } from "@/infrastructure/decorators/checkAdmin";
 
 export class SquidGame extends BaseHandler {
   public name: string = 'squid-game';
 
+  get day(): number {
+    return (new Date()).getDate();
+  }
+
+  get month(): number {
+    return (new Date()).getMonth() + 1;
+  }
+
+  @checkAdmin
+  async handleCommand(ctx: Context, name: string) {
+    if (name === 'активность') {
+      await this.replyWithScore(ctx);
+    }
+  }
+
   async handleMessage(ctx: Context) {
-    await this.tagMessage(ctx);
-    await this.calculateScore(ctx);
+    await this.extractAction(ctx);
   }
 
   async handleCommonEvent(ctx: Context) {
-    await this.tagMessage(ctx);
+    await this.extractAction(ctx);
   }
 
-  async tagMessage(ctx: Context) {
-    const scoreRepository = Database.getRepository(Score);
+  async extractAction(ctx: Context) {
+    const activityRepository = Database.getRepository(Activity);
 
-    const score = new Score();
-    score.chatId = getChatId(ctx);
-    score.userId = getUserId(ctx);
-    score.day = (new Date()).getDate();
-    score.tags = buildActivityTags(ctx);
+    const activity = new Activity();
+    activity.chatId = getChatId(ctx);
+    activity.userId = getUserId(ctx);
+    activity.day = this.day;
+    activity.month = this.month;
+    activity.action = getAction(ctx);
+    activity.modifications = getModifications(ctx);
 
-    await scoreRepository.insert(score);
+    await activityRepository.insert(activity);
   }
 
-  async calculateScore(ctx: Context) {
-    const scoreRepository = Database.getRepository(Score);
-
-    const scores = await scoreRepository.findBy({
-      day: (new Date()).getDate(),
+  async replyWithScore(ctx: Context) {
+    const activityRepository = Database.getRepository(Activity);
+    const activities = await activityRepository.findBy({
+      month: this.month,
       chatId: getChatId(ctx)
     });
+    const scores = calculateScoreByUsers(activities);
+    const message = Object.entries(scores).map(([userId, score]) => {
+      return `${userId} = ${score}`;
+    }).join('\r\n');
 
-    const activityByUser = scores.reduce((tags, score) => {
-      if (!tags[score.userId]) {
-        tags[score.userId] = {
-          score: 0,
-          tags: [],
-        };
-      }
-
-      tags[score.userId].tags = tags[score.userId].tags.concat(score.tags);
-
-      return tags;
-    }, {});
-
-    for (let userId in activityByUser) {
-      activityByUser[userId].score = calculateScoreByActivity(activityByUser[userId].tags);
-    }
-
-    console.log(activityByUser);
+    await replyTo(ctx, message);
   }
 }
