@@ -2,7 +2,7 @@ import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { getAction, getModifications } from '@/handlers/squid-game/utils/messageDecomposition';
-import { getChatId, getUserId, replyTo } from '@/utils/telegram';
+import { getChatId, getUserId, handleCommand, replyTo } from '@/utils/telegram';
 import { calculateScoreByUsers, MemberScore } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 import { Context } from '@/infrastructure/interfaces/Context';
@@ -19,24 +19,20 @@ export class SquidGame extends BaseHandler {
   }
 
   @checkAdmin('У тебя нет доступа, пёс.')
-  async handleCommand(ctx: Context, name: string, payload: string[]) {
-    switch (name) {
-      case 'активность': {
-        return await this.replyWithScore(ctx);
-      }
+  async handleMention(ctx: Context, message: string) {
+    handleCommand(message, /^(активность)/i, async () => {
+      await this.replyWithScore(ctx);
+    });
 
-      case 'запустить': {
-        await this.toggleGameState(ctx, true)
+    handleCommand(message, /^(запустить)/i, async () => {
+      await this.toggleGameState(ctx, true);
+      await replyTo(ctx, 'Игра запущена');
+    });
 
-        return replyTo(ctx, 'Игра запущена');
-      }
-
-      case 'остановить': {
-        await this.toggleGameState(ctx, false);
-
-        return replyTo(ctx, 'Игра остановлена');
-      }
-    }
+    handleCommand(message, /^(остановить)/i, async () => {
+      await this.toggleGameState(ctx, false);
+      await replyTo(ctx, 'Игра остановлена');
+    });
   }
 
   private isActive(ctx: Context) {

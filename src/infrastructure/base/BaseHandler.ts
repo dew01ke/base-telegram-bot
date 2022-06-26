@@ -1,13 +1,13 @@
 import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
 import { Database } from '@/infrastructure/database';
 import { log } from '@/utils/logger';
-import { getChatId, parseMentionCommand } from '@/utils/telegram';
+import { getChatId, isMention } from '@/utils/telegram';
 import { Context } from '@/infrastructure/interfaces/Context';
 import { Configuration } from '@/infrastructure/entities/Configuration';
 import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
 
 export interface Handler {
-  handleCommand?(ctx: Context, name: string, payload: string[]): void;
+  handleMention?(ctx: Context, message: string): void;
   handleMessage?(ctx: Context): void;
   handleInlineQuery?(ctx: Context): void;
   handleCallbackQuery?(ctx: Context, actionName: string): void;
@@ -22,10 +22,9 @@ export class BaseHandler implements Handler {
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
       if (this.isEnabled(ctx)) {
-        const { command, payload } = parseMentionCommand(ctx);
-
-        if (command) {
-          this.handleCommand(ctx, command, payload);
+        const message = isMention(ctx);
+        if (message) {
+          this.handleMention(ctx, message);
         } else {
           this.handleMessage(ctx);
         }
@@ -85,8 +84,8 @@ export class BaseHandler implements Handler {
     return updatedSettings;
   }
 
-  handleCommand(ctx: Context, name: string, payload: string[]) {
-    log(`Default command handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
+  handleMention(ctx: Context, message: string) {
+    log(`Default mention handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
   }
 
   handleMessage(ctx: Context) {
