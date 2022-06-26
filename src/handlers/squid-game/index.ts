@@ -3,7 +3,7 @@ import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { getAction, getModifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { getChatId, getUserId, replyTo } from '@/utils/telegram';
-import { calculateScoreByUsers, MemberScores } from '@/handlers/squid-game/utils/calculateScore';
+import { calculateScoreByUsers, MemberScore } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 import { Context } from '@/infrastructure/interfaces/Context';
 
@@ -20,17 +20,41 @@ export class SquidGame extends BaseHandler {
 
   @checkAdmin
   async handleCommand(ctx: Context, name: string, payload: string[]) {
-    if (name === 'активность') {
-      await this.replyWithScore(ctx);
+    switch (name) {
+      case 'активность': {
+        return await this.replyWithScore(ctx);
+      }
+
+      case 'запустить': {
+        await this.toggleGameState(ctx, true)
+
+        return replyTo(ctx, 'Игра запущена');
+      }
+
+      case 'остановить': {
+        await this.toggleGameState(ctx, false);
+
+        return replyTo(ctx, 'Игра остановлена');
+      }
     }
   }
 
+  private isActive(ctx: Context) {
+    const settings = this.getSettingsFromContext(ctx);
+
+    return settings.active;
+  }
+
   async handleMessage(ctx: Context) {
-    await this.extractMemberAction(ctx);
+    if (this.isActive(ctx)) {
+      await this.extractMemberAction(ctx);
+    }
   }
 
   async handleCommonEvent(ctx: Context) {
-    await this.extractMemberAction(ctx);
+    if (this.isActive(ctx)) {
+      await this.extractMemberAction(ctx);
+    }
   }
 
   async extractMemberAction(ctx: Context) {
@@ -47,7 +71,7 @@ export class SquidGame extends BaseHandler {
     await activityRepository.insert(activity);
   }
 
-  async buildScoreTable(ctx: Context): Promise<MemberScores> {
+  async buildScoreTable(ctx: Context): Promise<MemberScore[]> {
     const activityRepository = Database.getRepository(Activity);
     const activities = await activityRepository.findBy({
       month: this.month,
@@ -61,13 +85,16 @@ export class SquidGame extends BaseHandler {
     const memberScores = await this.buildScoreTable(ctx);
     const members = [];
 
-    for (const memberScore of Object.values(memberScores)) {
+    for (const memberScore of memberScores) {
       const member = await ctx.telegram.getChatMember(getChatId(ctx), memberScore.userId);
-      members.push(`${member.user.first_name} ${member.user.last_name} (${member.user.username}) - ${memberScore.score}`);
+      const username = member.user.username || member.user.first_name;
+      members.push(`${member.user.first_name} (${username}) → ${memberScore.score}`);
     }
 
-    const settings = this.getSettingsFromContext(ctx);
+    await replyTo(ctx, members.join('\n'));
+  }
 
-    await replyTo(ctx, members.join('\n') + JSON.stringify(settings));
+  async toggleGameState(ctx: Context, active) {
+    await this.saveSettings(ctx, { active });
   }
 }

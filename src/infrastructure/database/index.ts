@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from '@/infrastructure/database/strategies/snake-naming.strategy';
 import { Configuration } from '@/infrastructure/entities/Configuration';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
-import config from '@/infrastructure/config';
+import config, { Mode } from '@/infrastructure/config';
 
 export const Database = new DataSource({
   ssl: true,
@@ -13,7 +13,7 @@ export const Database = new DataSource({
   password: config.DATABASE_PASSWORD,
   database: config.DATABASE_NAME,
   synchronize: true,
-  logging: true,
+  logging: config.MODE === Mode.DEVELOPMENT,
   namingStrategy: new SnakeNamingStrategy(),
   entities: [
     Configuration,

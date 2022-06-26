@@ -1,5 +1,6 @@
 import { Actions, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
+import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
 
 export const SCORES = {
   [Actions.TEXT]: 1,
@@ -24,12 +25,8 @@ export interface MemberScore {
   score: number;
 }
 
-export interface MemberScores {
-  [key: string]: MemberScore;
-}
-
-export function calculateScoreByUsers(activities: Activity[]): MemberScores {
-  return activities.reduce((userScore, activity) => {
+export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
+  const scores: ObjectLiteral<MemberScore> = activities.reduce((userScore, activity) => {
     if (!userScore[activity.userId]) {
       userScore[activity.userId] = {
         userId: activity.userId,
@@ -41,4 +38,7 @@ export function calculateScoreByUsers(activities: Activity[]): MemberScores {
 
     return userScore;
   }, {});
+
+  return Object.values(scores)
+    .sort((a, b) => (b.score - a.score));
 }
