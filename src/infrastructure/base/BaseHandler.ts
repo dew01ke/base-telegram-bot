@@ -3,7 +3,7 @@ import { log } from '@/utils/logger';
 import { parseMentionCommand } from '@/utils/telegram';
 import { Context } from '@/infrastructure/interfaces/Context';
 import { Configuration } from '@/infrastructure/entities/Configuration';
-import { Nullable } from '@/infrastructure/interfaces/Nullable';
+import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
 
 export interface Handler {
   handleCommand?(ctx: Context, name: string, payload: string[]): void;
@@ -20,7 +20,7 @@ export class BaseHandler implements Handler {
     private readonly events: EventEmitter,
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
-      if (this.isHandlerActive(ctx)) {
+      if (this.isActive(ctx)) {
         const { command, payload } = parseMentionCommand(ctx);
 
         if (command) {
@@ -32,34 +32,38 @@ export class BaseHandler implements Handler {
     });
 
     events.subscribe(Events.INLINE_QUERY, (ctx: Context) => {
-      if (this.isHandlerActive(ctx)) {
+      if (this.isActive(ctx)) {
         this.handleInlineQuery(ctx);
       }
     });
 
     events.subscribe(Events.CALLBACK_QUERY, (ctx: Context) => {
-      if (this.isHandlerActive(ctx)) {
+      if (this.isActive(ctx)) {
         this.handleCallbackQuery(ctx, ctx.callbackQuery['data']);
       }
     });
 
     events.subscribe(COMMON_EVENT_NAME, (ctx: Context) => {
-      if (this.isHandlerActive(ctx)) {
+      if (this.isActive(ctx)) {
         this.handleCommonEvent(ctx);
       }
     });
   }
 
-  private getConfig(ctx: Context): Nullable<Configuration> {
-    return ctx?.configurations?.[this.name];
+  private getConfig(ctx: Context): Configuration {
+    return ctx?.configurations?.[this.name] || {};
   }
 
-  private isHandlerActive(ctx: Context): boolean {
-    return this.getConfig(ctx)?.enabled;
+  private isActive(ctx: Context): boolean {
+    return this.getConfig(ctx).enabled;
   }
 
   private isAdmin(ctx: Context, userId: number): boolean {
-    return this.getConfig(ctx)?.admins?.includes(userId);
+    return this.getConfig(ctx).admins?.includes(userId);
+  }
+
+  getSettingsFromContext(ctx: Context): ObjectLiteral<any> {
+    return this.getConfig(ctx).settings || {};
   }
 
   handleCommand(ctx: Context, name: string, payload: string[]) {

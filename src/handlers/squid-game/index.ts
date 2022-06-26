@@ -66,6 +66,8 @@ export class SquidGame extends BaseHandler {
       members.push(`${member.user.first_name} ${member.user.last_name} (${member.user.username}) - ${memberScore.score}`);
     }
 
-    await replyTo(ctx, members.join('\n'));
+    const settings = this.getSettingsFromContext(ctx);
+
+    await replyTo(ctx, members.join('\n') + JSON.stringify(settings));
   }
 }
