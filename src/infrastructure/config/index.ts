@@ -4,7 +4,7 @@ export enum Mode {
 }
 
 export default {
-  MODE: process.env.NODE_ENV = 'production' ? Mode.PRODUCTION : Mode.DEVELOPMENT,
+  MODE: process.env.NODE_ENV === 'production' ? Mode.PRODUCTION : Mode.DEVELOPMENT,
   BOT_USE_POLLING: process.env.BOT_USE_POLLING === 'true' ?? true,
   BOT_TOKEN: process.env.BOT_TOKEN,
 

@@ -18,7 +18,7 @@ export class SquidGame extends BaseHandler {
     return (new Date()).getMonth() + 1;
   }
 
-  @checkAdmin
+  @checkAdmin('У тебя нет доступа, пёс.')
   async handleCommand(ctx: Context, name: string, payload: string[]) {
     switch (name) {
       case 'активность': {
