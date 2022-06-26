@@ -1,4 +1,4 @@
-import { Actions, Modifications } from '@/handlers/squid-game/utils/activityTagger';
+import { Actions, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 
 export const SCORES = {

@@ -1,4 +1,3 @@
-import { Context } from 'telegraf';
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
@@ -6,6 +5,7 @@ import { getAction, getModifications } from '@/handlers/squid-game/utils/message
 import { getChatId, getUserId, replyTo } from '@/utils/telegram';
 import { calculateScoreByUsers, MemberScores } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
+import { Context } from '@/infrastructure/interfaces/Context';
 
 export class SquidGame extends BaseHandler {
   public name: string = 'squid-game';

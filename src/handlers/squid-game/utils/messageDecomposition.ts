@@ -1,4 +1,4 @@
-import { Context } from 'telegraf';
+import { Context } from '@/infrastructure/interfaces/Context';
 
 export enum Actions {
   TEXT = 'text',
@@ -20,62 +20,62 @@ export enum Modifications {
   OTHER_USER_REPLY = 'other_user_reply',
 }
 
-function isText(ctx) {
+function isText(ctx: Context) {
   return Boolean(ctx?.update?.message?.text);
 }
 
-function isSticker(ctx) {
+function isSticker(ctx: Context) {
   return Boolean(ctx?.update?.message?.sticker);
 }
 
-function isGif(ctx) {
+function isGif(ctx: Context) {
   return Boolean(ctx?.update?.message?.animation);
 }
 
-function isFile(ctx) {
+function isFile(ctx: Context) {
   return Boolean(ctx?.update?.message?.document);
 }
 
-function isPhoto(ctx) {
+function isPhoto(ctx: Context) {
   return Boolean(ctx?.update?.message?.photo);
 }
 
-function isVideoShot(ctx) {
+function isVideoShot(ctx: Context) {
   return Boolean(ctx?.update?.message?.video_note);
 }
 
-function isVoiceShot(ctx) {
+function isVoiceShot(ctx: Context) {
   return Boolean(ctx?.update?.message?.voice);
 }
 
-function withDescription(ctx) {
+function withDescription(ctx: Context) {
   return Boolean(ctx?.update?.message?.caption);
 }
 
-function withMyForward(ctx) {
+function withMyForward(ctx: Context) {
   return Boolean(ctx?.update?.message?.forward_from)
     && Boolean(ctx?.update?.message?.forward_from?.id === ctx?.update?.message?.from?.id);
 }
 
-function withOtherUserForward(ctx) {
+function withOtherUserForward(ctx: Context) {
   return Boolean(ctx?.update?.message?.forward_from)
     && Boolean(ctx?.update?.message?.forward_from?.id !== ctx?.update?.message?.from?.id);
 }
 
-function withEdit(ctx) {
+function withEdit(ctx: Context) {
   return Boolean(ctx?.update?.message?.edited_message);
 }
 
-function withChannelForward(ctx) {
+function withChannelForward(ctx: Context) {
   return Boolean(ctx?.update?.message?.forward_from_chat);
 }
 
-function withMyReply(ctx) {
+function withMyReply(ctx: Context) {
   return Boolean(ctx?.update?.message?.reply_to_message)
     && Boolean(ctx?.update?.message?.reply_to_message?.from?.id === ctx?.update?.message?.from?.id);
 }
 
-function withOtherUserReply(ctx) {
+function withOtherUserReply(ctx: Context) {
   return Boolean(ctx?.update?.message?.reply_to_message)
     && Boolean(ctx?.update?.message?.reply_to_message?.from?.id !== ctx?.update?.message?.from?.id);
 }

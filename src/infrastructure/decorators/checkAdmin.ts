@@ -1,4 +1,3 @@
-import { isAdmin } from '@/rules';
 import { getUserId } from '@/utils/telegram';
 import { log } from '@/utils/logger';
 
@@ -12,7 +11,7 @@ export function checkAdmin(target: any, key: string, descriptor: PropertyDescrip
     const ctx = args[0];
     const userId = getUserId(ctx);
 
-    if (!isAdmin(this.name, userId)) {
+    if (!this.isAdmin(ctx, userId)) {
       log('User with id', userId, 'is not admin');
 
       return null;

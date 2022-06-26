@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from '@/infrastructure/database/strategies/snake-naming.strategy';
+import { Configuration } from '@/infrastructure/entities/Configuration';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import config from '@/infrastructure/config';
 
@@ -15,6 +16,7 @@ export const Database = new DataSource({
   logging: true,
   namingStrategy: new SnakeNamingStrategy(),
   entities: [
+    Configuration,
     Activity
   ],
   extra: {

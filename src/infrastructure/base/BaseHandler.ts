@@ -1,13 +1,14 @@
-import { Context } from 'telegraf';
 import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
 import { log } from '@/utils/logger';
-import { isHandlerActive } from '@/rules';
 import { parseMentionCommand } from '@/utils/telegram';
+import { Context } from '@/infrastructure/interfaces/Context';
+import { Configuration } from '@/infrastructure/entities/Configuration';
+import { Nullable } from '@/infrastructure/interfaces/Nullable';
 
 export interface Handler {
   handleCommand?(ctx: Context, name: string, payload: string[]): void;
   handleMessage?(ctx: Context): void;
-  handlerInlineQuery?(ctx: Context): void;
+  handleInlineQuery?(ctx: Context): void;
   handleCallbackQuery?(ctx: Context, actionName: string): void;
   handleCommonEvent?(ctx: Context): void;
 }
@@ -19,7 +20,7 @@ export class BaseHandler implements Handler {
     private readonly events: EventEmitter,
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
-      if (isHandlerActive(this.name, ctx.chat.type, ctx.chat.id)) {
+      if (this.isHandlerActive(ctx)) {
         const { command, payload } = parseMentionCommand(ctx);
 
         if (command) {
@@ -31,22 +32,34 @@ export class BaseHandler implements Handler {
     });
 
     events.subscribe(Events.INLINE_QUERY, (ctx: Context) => {
-      if (isHandlerActive(this.name, ctx.chat.type, ctx.chat.id)) {
+      if (this.isHandlerActive(ctx)) {
         this.handleInlineQuery(ctx);
       }
     });
 
     events.subscribe(Events.CALLBACK_QUERY, (ctx: Context) => {
-      if (isHandlerActive(this.name, ctx.chat.type, ctx.chat.id)) {
+      if (this.isHandlerActive(ctx)) {
         this.handleCallbackQuery(ctx, ctx.callbackQuery['data']);
       }
     });
 
     events.subscribe(COMMON_EVENT_NAME, (ctx: Context) => {
-      if (isHandlerActive(this.name, ctx.chat.type, ctx.chat.id)) {
+      if (this.isHandlerActive(ctx)) {
         this.handleCommonEvent(ctx);
       }
     });
+  }
+
+  private getConfig(ctx: Context): Nullable<Configuration> {
+    return ctx?.configurations?.[this.name];
+  }
+
+  private isHandlerActive(ctx: Context): boolean {
+    return this.getConfig(ctx)?.enabled;
+  }
+
+  private isAdmin(ctx: Context, userId: number): boolean {
+    return this.getConfig(ctx)?.admins?.includes(userId);
   }
 
   handleCommand(ctx: Context, name: string, payload: string[]) {
