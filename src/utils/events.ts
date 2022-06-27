@@ -13,6 +13,7 @@ export enum Events {
 }
 
 export const COMMON_EVENT_NAME = 'common';
+export const SCHEDULER_EVENT_NAME = 'scheduler';
 
 type Subscribers = {
   [key: string]: Subscriber[];
@@ -23,7 +24,7 @@ type Subscriber = (payload: any) => void;
 export class EventEmitter {
   private subscribers: Subscribers = {};
 
-  emit(eventName: any, payload: any) {
+  emit(eventName: any, payload?: any): void {
     if (this.subscribers[eventName]) {
       this.subscribers[eventName].forEach((subscriber) => {
         subscriber(payload);

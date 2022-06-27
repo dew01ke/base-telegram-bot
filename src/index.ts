@@ -12,7 +12,7 @@ import Handlers from '@/handlers';
 
 const bot = new Telegraf(config.BOT_TOKEN);
 const events = new EventEmitter();
-const handlers = Handlers.map(Handler => (new Handler(events)).name);
+const handlers = Handlers.map(Handler => (new Handler(bot, events)).name);
 
 bot.use(async (ctx: Context, next) => {
   const configurationRepository = Database.getRepository(Configuration);
@@ -20,6 +20,7 @@ bot.use(async (ctx: Context, next) => {
   const configurations = await configurationRepository.findBy({
     enabled: true,
     chatId: getChatId(ctx),
+    botName: ctx.botInfo.username
   });
 
   ctx.configurations = configurations.reduce((configurations, configuration) => {
@@ -63,4 +64,4 @@ if (config.BOT_USE_POLLING) {
   bot.launch();
 }
 
-module.exports.handler = handle(bot);
+module.exports.handler = handle(bot, events);

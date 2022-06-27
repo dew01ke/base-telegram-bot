@@ -1,4 +1,5 @@
-import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
+import { Telegraf } from 'telegraf';
+import { COMMON_EVENT_NAME, EventEmitter, Events, SCHEDULER_EVENT_NAME } from '@/utils/events';
 import { Database } from '@/infrastructure/database';
 import { log } from '@/utils/logger';
 import { getChatId, isMention } from '@/utils/telegram';
@@ -12,12 +13,14 @@ export interface Handler {
   handleInlineQuery?(ctx: Context): void;
   handleCallbackQuery?(ctx: Context, actionName: string): void;
   handleCommonEvent?(ctx: Context): void;
+  handleSchedulerEvent?(): void;
 }
 
 export class BaseHandler implements Handler {
   public name: string;
 
   constructor(
+    public readonly bot: Telegraf,
     private readonly events: EventEmitter,
   ) {
     events.subscribe(Events.MESSAGE, (ctx: Context) => {
@@ -47,6 +50,10 @@ export class BaseHandler implements Handler {
       if (this.isEnabled(ctx)) {
         this.handleCommonEvent(ctx);
       }
+    });
+
+    events.subscribe(SCHEDULER_EVENT_NAME, () => {
+      this.handleSchedulerEvent();
     });
   }
 
@@ -102,5 +109,9 @@ export class BaseHandler implements Handler {
 
   handleCommonEvent(ctx: Context) {
     log(`Default event handler -> from ${ctx.from.id} [${ctx.chat.id}]`);
+  }
+
+  handleSchedulerEvent() {
+    log(`Default scheduler handler`);
   }
 }

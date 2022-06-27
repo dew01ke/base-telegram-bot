@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
 import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
 
 @Entity()
-@Index(['enabled', 'chatId'])
+@Index(['enabled', 'chatId', 'botName'])
 export class Configuration {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,6 +20,9 @@ export class Configuration {
     type: 'json'
   })
   admins: number[];
+
+  @Column()
+  botName: string;
 
   @Column({
     type: 'json'

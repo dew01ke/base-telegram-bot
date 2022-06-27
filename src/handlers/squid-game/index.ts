@@ -2,12 +2,13 @@ import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { getAction, getModifications } from '@/handlers/squid-game/utils/messageDecomposition';
-import { getChatId, getUserId, handleCommand, replyTo } from '@/utils/telegram';
+import { getChatId, getUserId, handleCommand, handleSchedule, replyTo } from '@/utils/telegram';
 import { calculateScoreByUsers, MemberScore } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 import { Context } from '@/infrastructure/interfaces/Context';
+import { Configuration } from '@/infrastructure/entities/Configuration';
 
-const NO_ACCESS_TEXT = 'У тебя нет доступа, пёс.';
+const FORBIDDEN_MESSAGE = 'У тебя нет доступа, пёс.';
 
 export class SquidGame extends BaseHandler {
   public name: string = 'squid-game';
@@ -54,6 +55,12 @@ export class SquidGame extends BaseHandler {
     }
   }
 
+  async handleSchedulerEvent() {
+    handleSchedule(9, async () => {
+      await this.notifyWithScore();
+    });
+  }
+
   async extractMemberAction(ctx: Context) {
     const activityRepository = Database.getRepository(Activity);
 
@@ -68,7 +75,7 @@ export class SquidGame extends BaseHandler {
     await activityRepository.insert(activity);
   }
 
-  async buildScoreTable(ctx: Context, targetChatId?: number): Promise<MemberScore[]> {
+  async buildScoreTable(ctx?: Context, targetChatId?: number): Promise<MemberScore[]> {
     const chatId = targetChatId || getChatId(ctx);
     const activityRepository = Database.getRepository(Activity);
     const activities = await activityRepository.findBy({
@@ -79,22 +86,43 @@ export class SquidGame extends BaseHandler {
     return calculateScoreByUsers(activities);
   }
 
-  @checkAdmin(NO_ACCESS_TEXT)
-  async replyWithScore(ctx: Context, targetChatId?: number) {
-    const chatId = targetChatId || getChatId(ctx);
-    const memberScores = await this.buildScoreTable(ctx, chatId);
+  async formatScoreMessage(chatId: number): Promise<string> {
+    const memberScores = await this.buildScoreTable(null, chatId);
     const members = [];
 
     for (const memberScore of memberScores) {
-      const member = await ctx.telegram.getChatMember(chatId, memberScore.userId);
+      const member = await this.bot.telegram.getChatMember(chatId, memberScore.userId);
       const username = member.user.username || member.user.first_name;
       members.push(`${member.user.first_name} (${username}) → ${memberScore.score}`);
     }
 
-    await replyTo(ctx, members.join('\n'));
+    return members.join('\n');
   }
 
-  @checkAdmin(NO_ACCESS_TEXT)
+  async notifyWithScore() {
+    const me = await this.bot.telegram.getMe();
+    const configurationRepository = Database.getRepository(Configuration);
+    const configurations = await configurationRepository.findBy({
+      enabled: true,
+      name: this.name,
+      botName: me.username,
+    });
+
+    for (const configuration of configurations) {
+      const scoreMessage = await this.formatScoreMessage(configuration.chatId);
+      await this.bot.telegram.sendMessage(configuration.chatId, scoreMessage);
+    }
+  }
+
+  @checkAdmin(FORBIDDEN_MESSAGE)
+  async replyWithScore(ctx: Context, targetChatId?: number) {
+    const chatId = targetChatId || getChatId(ctx);
+    const scoreMessage = await this.formatScoreMessage(chatId);
+
+    await replyTo(ctx, scoreMessage);
+  }
+
+  @checkAdmin(FORBIDDEN_MESSAGE)
   async replyAndToggleGameState(ctx: Context, active: boolean) {
     await this.saveSettings(ctx, { active });
     await replyTo(ctx, active ? 'Игра запущена': 'Игра остановлена');

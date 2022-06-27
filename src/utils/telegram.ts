@@ -20,12 +20,19 @@ export function isMention(ctx: Context) {
   return false;
 }
 
-export function handleCommand(message: string, command: RegExp, callback: (...args: string[]) => void) {
+export function handleCommand(message: string, command: RegExp, callback: (...args: string[]) => void): void {
   if (command.test(message)) {
     const [,, payload] = message.split(command);
     const args = payload.trim().split(' ');
 
     callback(...args);
+  }
+}
+
+export function handleSchedule(targetHour: number, callback: () => void): void {
+  const hour = (new Date()).getHours();
+  if (hour === targetHour) {
+    callback();
   }
 }
 
