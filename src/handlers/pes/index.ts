@@ -6,14 +6,18 @@ import { handleCommand } from '@/utils/telegram';
 export class Pes extends BaseHandler {
   public name: string = 'pes';
 
-  @checkAdmin()
   async handleMention(ctx: Context, message: string) {
     handleCommand(message, /^(кто п[её]с дня)/i, async () => {
-      const settings = this.getSettingsFromContext(ctx);
-
-      if (settings.text) {
-        await ctx.reply(settings.text);
-      }
+      await this.replyWithPes(ctx);
     });
+  }
+
+  @checkAdmin()
+  async replyWithPes(ctx: Context) {
+    const settings = this.getSettingsFromContext(ctx);
+
+    if (settings.text) {
+      await ctx.reply(settings.text);
+    }
   }
 }

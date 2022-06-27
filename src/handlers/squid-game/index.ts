@@ -7,6 +7,8 @@ import { calculateScoreByUsers, MemberScore } from '@/handlers/squid-game/utils/
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 import { Context } from '@/infrastructure/interfaces/Context';
 
+const NO_ACCESS_TEXT = 'У тебя нет доступа, пёс.';
+
 export class SquidGame extends BaseHandler {
   public name: string = 'squid-game';
 
@@ -18,20 +20,19 @@ export class SquidGame extends BaseHandler {
     return (new Date()).getMonth() + 1;
   }
 
-  @checkAdmin('У тебя нет доступа, пёс.')
   async handleMention(ctx: Context, message: string) {
-    handleCommand(message, /^(активность)/i, async () => {
-      await this.replyWithScore(ctx);
+    handleCommand(message, /^(активность)/i, async (chatId) => {
+      const targetChatId = parseInt(chatId, 10);
+
+      await this.replyWithScore(ctx, targetChatId);
     });
 
-    handleCommand(message, /^(запустить)/i, async () => {
-      await this.toggleGameState(ctx, true);
-      await replyTo(ctx, 'Игра запущена');
+    handleCommand(message, /^(запустить игру)/i, async () => {
+      await this.replyAndToggleGameState(ctx, true);
     });
 
-    handleCommand(message, /^(остановить)/i, async () => {
-      await this.toggleGameState(ctx, false);
-      await replyTo(ctx, 'Игра остановлена');
+    handleCommand(message, /^(остановить игру)/i, async () => {
+      await this.replyAndToggleGameState(ctx, false);
     });
   }
 
@@ -67,22 +68,25 @@ export class SquidGame extends BaseHandler {
     await activityRepository.insert(activity);
   }
 
-  async buildScoreTable(ctx: Context): Promise<MemberScore[]> {
+  async buildScoreTable(ctx: Context, targetChatId?: number): Promise<MemberScore[]> {
+    const chatId = targetChatId || getChatId(ctx);
     const activityRepository = Database.getRepository(Activity);
     const activities = await activityRepository.findBy({
       month: this.month,
-      chatId: getChatId(ctx)
+      chatId,
     });
 
     return calculateScoreByUsers(activities);
   }
 
-  async replyWithScore(ctx: Context) {
-    const memberScores = await this.buildScoreTable(ctx);
+  @checkAdmin(NO_ACCESS_TEXT)
+  async replyWithScore(ctx: Context, targetChatId?: number) {
+    const chatId = targetChatId || getChatId(ctx);
+    const memberScores = await this.buildScoreTable(ctx, chatId);
     const members = [];
 
     for (const memberScore of memberScores) {
-      const member = await ctx.telegram.getChatMember(getChatId(ctx), memberScore.userId);
+      const member = await ctx.telegram.getChatMember(chatId, memberScore.userId);
       const username = member.user.username || member.user.first_name;
       members.push(`${member.user.first_name} (${username}) → ${memberScore.score}`);
     }
@@ -90,7 +94,9 @@ export class SquidGame extends BaseHandler {
     await replyTo(ctx, members.join('\n'));
   }
 
-  async toggleGameState(ctx: Context, active) {
+  @checkAdmin(NO_ACCESS_TEXT)
+  async replyAndToggleGameState(ctx: Context, active: boolean) {
     await this.saveSettings(ctx, { active });
+    await replyTo(ctx, active ? 'Игра запущена': 'Игра остановлена');
   }
 }
