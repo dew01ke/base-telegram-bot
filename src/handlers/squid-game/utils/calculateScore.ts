@@ -1,6 +1,7 @@
 import { Actions, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
+import calculateByWeight from '@/handlers/squid-game/utils/calculateByWeight';
 
 export const SCORES = {
   [Actions.TEXT]: 1,
@@ -22,23 +23,26 @@ export const SCORES = {
 
 export interface MemberScore {
   userId: number;
-  score: number;
+  rawScore: number;
+  balancedScore: number;
 }
 
 export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
+  const weighedScores = calculateByWeight(activities);
   const scores: ObjectLiteral<MemberScore> = activities.reduce((userScore, activity) => {
     if (!userScore[activity.userId]) {
       userScore[activity.userId] = {
         userId: activity.userId,
-        score: 0,
+        rawScore: 0,
+        balancedScore: Math.floor(weighedScores[activity.userId]),
       };
     }
 
-    userScore[activity.userId].score += (SCORES[activity.action] || 0);
+    userScore[activity.userId].rawScore += (SCORES[activity.action] || 0);
 
     return userScore;
   }, {});
 
   return Object.values(scores)
-    .sort((a, b) => (b.score - a.score));
+    .sort((a, b) => (b.rawScore - a.rawScore));
 }

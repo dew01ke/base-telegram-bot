@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { Telegraf } from 'telegraf';
-import { COMMON_EVENT_NAME, EventEmitter, Events } from '@/utils/events';
+import { COMMON_EVENT_NAME, EventEmitter, BASE_EVENTS, COMMON_EVENTS } from '@/utils/events';
 import { handle } from '@/infrastructure/adapters/YandexCloudConnection';
-import { info } from '@/utils/logger';
+import { log } from '@/utils/logger';
 import { Database } from '@/infrastructure/database';
 import { Configuration } from '@/infrastructure/entities/Configuration';
 import { getChatId } from '@/utils/telegram';
@@ -32,33 +32,20 @@ bot.use(async (ctx: Context, next) => {
   await next();
 });
 
-[
-  Events.MESSAGE,
-  Events.CALLBACK_QUERY,
-  Events.INLINE_QUERY,
-].forEach((eventName) => {
+BASE_EVENTS.forEach((eventName) => {
   bot.on(eventName, (ctx: Context) => {
     events.emit(eventName, ctx);
   });
 });
 
-[
-  Events.TEXT,
-  Events.EDITED_MESSAGE,
-  Events.POLL_ANSWER,
-  Events.PHOTO ,
-  Events.VIDEO,
-  Events.VIDEO_NOTE,
-  Events.VOICE,
-  Events.AUDIO,
-].forEach((eventName) => {
+COMMON_EVENTS.forEach((eventName) => {
   bot.on(eventName, (ctx: Context) => {
     events.emit(COMMON_EVENT_NAME, ctx);
   });
 });
 
-info(`Bot has been started! Polling flag: ${config.BOT_USE_POLLING}`);
-info(`Available handlers: ${handlers.length} => ${handlers}`);
+log(`Bot has been started! Polling flag: ${config.BOT_USE_POLLING}`);
+log(`Available handlers: ${handlers.length} => ${handlers}`);
 
 if (config.BOT_USE_POLLING) {
   bot.launch();

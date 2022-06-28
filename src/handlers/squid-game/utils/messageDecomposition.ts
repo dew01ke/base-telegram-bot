@@ -80,7 +80,7 @@ function withOtherUserReply(ctx: Context) {
     && Boolean(ctx?.update?.message?.reply_to_message?.from?.id !== ctx?.update?.message?.from?.id);
 }
 
-export function getAction(ctx: Context): string {
+export function getAction(ctx: Context): Actions {
   let tags = [];
 
   isText(ctx) && tags.push(Actions.TEXT);

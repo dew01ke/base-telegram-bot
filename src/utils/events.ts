@@ -12,6 +12,22 @@ export enum Events {
   INLINE_QUERY = 'inline_query',
 }
 
+export const BASE_EVENTS = [
+  Events.MESSAGE,
+  Events.CALLBACK_QUERY,
+  Events.INLINE_QUERY,
+];
+export const COMMON_EVENTS = [
+  Events.TEXT,
+  Events.EDITED_MESSAGE,
+  Events.POLL_ANSWER,
+  Events.PHOTO ,
+  Events.VIDEO,
+  Events.VIDEO_NOTE,
+  Events.VOICE,
+  Events.AUDIO,
+];
+
 export const COMMON_EVENT_NAME = 'common';
 export const SCHEDULER_EVENT_NAME = 'scheduler';
 

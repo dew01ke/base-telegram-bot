@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
+import { Actions, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 
 @Entity()
 @Index(['chatId', 'day', 'month'])
@@ -14,12 +15,12 @@ export class Activity {
   userId: number;
 
   @Column()
-  action: string;
+  action: Actions;
 
   @Column({
     type: 'json'
   })
-  modifications: object;
+  modifications: Modifications[];
 
   @Column()
   day: number;

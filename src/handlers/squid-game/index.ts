@@ -93,7 +93,7 @@ export class SquidGame extends BaseHandler {
     for (const memberScore of memberScores) {
       const member = await this.bot.telegram.getChatMember(chatId, memberScore.userId);
       const username = member.user.username || member.user.first_name;
-      members.push(`${member.user.first_name} (${username}) → ${memberScore.score}`);
+      members.push(`${member.user.first_name} (${username}) → ${memberScore.balancedScore} (base: ${memberScore.rawScore})`);
     }
 
     return members.join('\n');

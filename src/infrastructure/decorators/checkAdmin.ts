@@ -13,7 +13,7 @@ export const checkAdmin = (errorMessage?: string) => (
     const userId = getUserId(ctx);
 
     if (!this.isAdmin(ctx, userId)) {
-      log('User with id', userId, 'is not admin');
+      log('Access denied for', userId);
 
       if (errorMessage) {
         await replyTo(ctx, errorMessage);
