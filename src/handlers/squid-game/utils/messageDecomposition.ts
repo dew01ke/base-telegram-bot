@@ -8,6 +8,7 @@ export enum Actions {
   PHOTO = 'photo',
   VIDEO_SHOT = 'video_shot',
   VOICE_SHOT = 'voice_shot',
+  DECREASE_ACTIVITY = 'decrease_activity',
 }
 
 export enum Modifications {

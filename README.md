@@ -10,19 +10,6 @@ A pretty simple and flexible boilerplate for making Telegram bot
 * DATABASE_PASSWORD
 * DATABASE_NAME
 
-## Rules
-The Telegram bot allows you to flexibly configure handlers. Rules must be stored as json with the following structure.
-
-```json
-{
-  "handlerName": {
-    "type": "private" | "group" | "on" | "off",
-    "ids": number[],
-    "admins": number[], 
-  }
-}
-```
-
 ## How to install
 * npm install
 * npm run build

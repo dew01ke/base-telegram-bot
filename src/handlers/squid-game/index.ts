@@ -1,7 +1,7 @@
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Database } from '@/infrastructure/database';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
-import { getAction, getModifications } from '@/handlers/squid-game/utils/messageDecomposition';
+import { Actions, getAction, getModifications, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { getChatId, getUserId, handleCommand, handleSchedule, replyTo } from '@/utils/telegram';
 import { calculateScoreByUsers, MemberScore } from '@/handlers/squid-game/utils/calculateScore';
 import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
@@ -56,21 +56,36 @@ export class SquidGame extends BaseHandler {
   }
 
   async handleSchedulerEvent() {
-    handleSchedule(9, async () => {
+    handleSchedule(20, async () => {
+      await this.decreaseActivityScore();
       await this.notifyWithScore();
     });
   }
 
   async extractMemberAction(ctx: Context) {
+    await this.createMemberAction(
+      getChatId(ctx),
+      getUserId(ctx),
+      getAction(ctx),
+      getModifications(ctx)
+    );
+  }
+
+  async createMemberAction(
+    chatId: number,
+    userId: number,
+    action: Actions,
+    modifications: Modifications[]
+  ) {
     const activityRepository = Database.getRepository(Activity);
 
     const activity = new Activity();
-    activity.chatId = getChatId(ctx);
-    activity.userId = getUserId(ctx);
+    activity.chatId = chatId;
+    activity.userId = userId;
     activity.day = this.day;
     activity.month = this.month;
-    activity.action = getAction(ctx);
-    activity.modifications = getModifications(ctx);
+    activity.action = action;
+    activity.modifications = modifications;
 
     await activityRepository.insert(activity);
   }
@@ -93,10 +108,27 @@ export class SquidGame extends BaseHandler {
     for (const memberScore of memberScores) {
       const member = await this.bot.telegram.getChatMember(chatId, memberScore.userId);
       const username = member.user.username || member.user.first_name;
-      members.push(`${member.user.first_name} (${username}) → ${memberScore.balancedScore} (base: ${memberScore.rawScore})`);
+      members.push(`${member.user.first_name} (${username}) → ${memberScore.weighedScore} (${memberScore.rawScore})`);
     }
 
     return members.join('\n');
+  }
+
+  async decreaseActivityScore() {
+    const me = await this.bot.telegram.getMe();
+    const configurationRepository = Database.getRepository(Configuration);
+    const configurations = await configurationRepository.findBy({
+      enabled: true,
+      name: this.name,
+      botName: me.username,
+    });
+
+    for (const configuration of configurations) {
+      const users = configuration.settings?.users || [];
+      for (const userId of users) {
+        await this.createMemberAction(configuration.chatId, userId, Actions.DECREASE_ACTIVITY, []);
+      }
+    }
   }
 
   async notifyWithScore() {

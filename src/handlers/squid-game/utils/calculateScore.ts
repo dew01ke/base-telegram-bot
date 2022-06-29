@@ -24,7 +24,7 @@ export const SCORES = {
 export interface MemberScore {
   userId: number;
   rawScore: number;
-  balancedScore: number;
+  weighedScore: number;
 }
 
 export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
@@ -34,7 +34,7 @@ export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
       userScore[activity.userId] = {
         userId: activity.userId,
         rawScore: 0,
-        balancedScore: Math.floor(weighedScores[activity.userId]),
+        weighedScore: Math.floor(weighedScores[activity.userId]),
       };
     }
 
@@ -44,5 +44,5 @@ export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
   }, {});
 
   return Object.values(scores)
-    .sort((a, b) => (b.rawScore - a.rawScore));
+    .sort((a, b) => (b.weighedScore - a.weighedScore));
 }
