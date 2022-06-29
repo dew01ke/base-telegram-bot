@@ -12,8 +12,7 @@ export class Pes extends BaseHandler {
     });
   }
 
-  @checkAdmin()
-  async replyWithPes(ctx: Context) {
+  private async replyWithPes(ctx: Context) {
     const settings = this.getSettingsFromContext(ctx);
 
     if (settings.text) {

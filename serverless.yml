@@ -18,8 +18,8 @@ package:
 functions:
   bot:
     handler: dist/index.handler
-    memorySize: 128
-    timeout: 5
+    memorySize: 512
+    timeout: 10
     account: function-sa
     environment: ${file(./serverless-environment.yml):environment}
 

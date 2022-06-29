@@ -1,9 +1,9 @@
 import { Actions, Modifications } from '@/handlers/squid-game/utils/messageDecomposition';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
 import { ObjectLiteral } from '@/infrastructure/interfaces/ObjectLiteral';
-import calculateByWeight from '@/handlers/squid-game/utils/calculateByWeight';
+import { calculateWeightedScore } from '@/handlers/squid-game/utils/calculateWeightedScore';
 
-export const SCORES = {
+export const BASE_SCORES = {
   [Actions.TEXT]: 1,
   [Actions.VIDEO_SHOT]: 1,
   [Actions.VOICE_SHOT]: 1,
@@ -22,43 +22,49 @@ export const SCORES = {
   [Modifications.OTHER_USER_REPLY]: 1,
 }
 
-export interface MemberScore {
+export interface UserScore {
   userId: number;
-  rawScore: number;
-  weighedScore: number;
+  baseScore: number;
+  weightedScore: number;
 }
 
-function createUsersObject(users: number[]) {
-  return users.reduce((userObject, userId) => {
-    if (!userObject[userId]) {
-      userObject[userId] = {
-        userId,
-        rawScore: 0,
-        weighedScore: 0,
-      }
+function createScore(userId: number): UserScore {
+  return {
+    userId,
+    baseScore: 0,
+    weightedScore: 0,
+  }
+}
+
+function createScoreObject(activities: Activity[], usersBySettings: number[]): UserScore[] {
+  const usersByActivity = activities.map((activity) => activity.userId);
+  const users = Array.from(new Set([...usersByActivity, ...usersBySettings]));
+
+  return users.map((userId) => createScore(userId));
+}
+
+function calculateBaseScore(activities: Activity[]): ObjectLiteral<number> {
+  return activities.reduce((userScore, activity) => {
+    if (!userScore[activity.userId]) {
+      userScore[activity.userId] = 0;
     }
 
-    return userObject;
+    userScore[activity.userId] += (BASE_SCORES[activity.action] || 0);
+
+    return userScore;
   }, {});
 }
 
-export function calculateScoreByUsers(activities: Activity[], users: number[] = []): MemberScore[] {
-  const weighedScores = calculateByWeight(activities);
-  const scores: ObjectLiteral<MemberScore> = activities.reduce((userScore, activity) => {
-    if (!userScore[activity.userId]) {
-      userScore[activity.userId] = {
-        userId: activity.userId,
-        rawScore: 0,
-        weighedScore: 0,
-      };
-    }
+export function calculateScoreByUsers(activities: Activity[], users: number[] = []): UserScore[] {
+  const scores = createScoreObject(activities, users);
+  const baseScores = calculateBaseScore(activities);
+  const weightedScores = calculateWeightedScore(activities);
 
-    userScore[activity.userId].rawScore += (SCORES[activity.action] || 0);
-    userScore[activity.userId].weighedScore = Math.floor(weighedScores[activity.userId]);
-
-    return userScore;
-  }, createUsersObject(users));
-
-  return Object.values(scores)
-    .sort((a, b) => (b.weighedScore - a.weighedScore));
+  return scores
+    .map((score) => ({
+      ...score,
+      baseScore: baseScores[score.userId] ? Math.floor(baseScores[score.userId]) : 0,
+      weightedScore: weightedScores[score.userId] ? Math.floor(weightedScores[score.userId]) : 0,
+    }))
+    .sort((a, b) => (b.weightedScore - a.weightedScore));
 }

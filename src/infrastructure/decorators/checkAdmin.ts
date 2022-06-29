@@ -1,11 +1,16 @@
 import { getUserId, replyTo } from '@/utils/telegram';
 import { log } from '@/utils/logger';
 
-export const checkAdmin = (errorMessage?: string) => (
+interface CheckAdminOptions {
+  errorMessage?: string;
+}
+
+export const checkAdmin = (options?: CheckAdminOptions) => (
   target: Object,
   propertyKey: string,
   descriptor: PropertyDescriptor
 ) => {
+  const { errorMessage } = options;
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args) {

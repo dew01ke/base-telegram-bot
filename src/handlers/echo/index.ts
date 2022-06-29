@@ -2,10 +2,10 @@ import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { replyTo } from '@/utils/telegram';
 import { Context } from '@/infrastructure/interfaces/Context';
 
-export class Greetings extends BaseHandler {
-  public name: string = 'greetings';
+export class Echo extends BaseHandler {
+  public name: string = 'echo';
 
   async handleMessage(ctx: Context) {
-    await replyTo(ctx, `Привет!`);
+    await replyTo(ctx, ctx.message.text);
   }
 }

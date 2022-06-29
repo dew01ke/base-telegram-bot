@@ -1,9 +1,9 @@
-import { Greetings } from '@/handlers/greetings';
+import { Echo } from '@/handlers/echo';
 import { SquidGame } from '@/handlers/squid-game';
 import { Pes } from '@/handlers/pes';
 
 export default [
-  Greetings,
+  Echo,
   SquidGame,
   Pes
 ]
