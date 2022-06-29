@@ -11,6 +11,7 @@ export const SCORES = {
   [Actions.GIF]: 1,
   [Actions.FILE]: 1,
   [Actions.PHOTO]: 1,
+  [Actions.DECREASE_ACTIVITY]: -1,
 
   [Modifications.DESCRIPTION]: 1,
   [Modifications.MY_FORWARD]: 1,
@@ -27,21 +28,36 @@ export interface MemberScore {
   weighedScore: number;
 }
 
-export function calculateScoreByUsers(activities: Activity[]): MemberScore[] {
+function createUsersObject(users: number[]) {
+  return users.reduce((userObject, userId) => {
+    if (!userObject[userId]) {
+      userObject[userId] = {
+        userId,
+        rawScore: 0,
+        weighedScore: 0,
+      }
+    }
+
+    return userObject;
+  }, {});
+}
+
+export function calculateScoreByUsers(activities: Activity[], users: number[] = []): MemberScore[] {
   const weighedScores = calculateByWeight(activities);
   const scores: ObjectLiteral<MemberScore> = activities.reduce((userScore, activity) => {
     if (!userScore[activity.userId]) {
       userScore[activity.userId] = {
         userId: activity.userId,
         rawScore: 0,
-        weighedScore: Math.floor(weighedScores[activity.userId]),
+        weighedScore: 0,
       };
     }
 
     userScore[activity.userId].rawScore += (SCORES[activity.action] || 0);
+    userScore[activity.userId].weighedScore = Math.floor(weighedScores[activity.userId]);
 
     return userScore;
-  }, {});
+  }, createUsersObject(users));
 
   return Object.values(scores)
     .sort((a, b) => (b.weighedScore - a.weighedScore));

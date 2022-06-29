@@ -98,7 +98,34 @@ export class SquidGame extends BaseHandler {
       chatId,
     });
 
-    return calculateScoreByUsers(activities);
+    const me = await this.bot.telegram.getMe();
+    const configurationRepository = Database.getRepository(Configuration);
+    const configuration = await configurationRepository.findOne({
+      where: {
+        enabled: true,
+        name: this.name,
+        botName: me.username,
+        chatId,
+      }
+    });
+    const users = configuration?.settings?.users || [];
+
+    return calculateScoreByUsers(activities, users);
+  }
+
+  async getChatMember(chatId: number, userId: number) {
+    try {
+      return await this.bot.telegram.getChatMember(chatId, userId);
+    } catch (err) {}
+
+    return {
+      user: {
+        userId,
+        chatId,
+        username: null,
+        first_name: `User #${userId}`
+      }
+    }
   }
 
   async formatScoreMessage(chatId: number): Promise<string> {
@@ -106,9 +133,8 @@ export class SquidGame extends BaseHandler {
     const members = [];
 
     for (const memberScore of memberScores) {
-      const member = await this.bot.telegram.getChatMember(chatId, memberScore.userId);
-      const username = member.user.username || member.user.first_name;
-      members.push(`${member.user.first_name} (${username}) → ${memberScore.weighedScore} (${memberScore.rawScore})`);
+      const member = await this.getChatMember(chatId, memberScore.userId);
+      members.push(`${member.user.first_name} (${member.user.username || '-'}) → ${memberScore.weighedScore} (${memberScore.rawScore})`);
     }
 
     return members.join('\n');
