@@ -22,23 +22,23 @@ export class SquidGame extends BaseHandler {
   }
 
   private isActive(ctx: Context) {
-    const settings = this.getSettingsFromContext(ctx);
+    const settings = this.getSettings(ctx);
 
     return settings.active;
   }
 
   async handleMention(ctx: Context, message: string) {
-    handleCommand(message, /^(активность)/i, async (chatId) => {
+    handleCommand(message, /^(покажи результаты)/i, async (chatId) => {
       const targetChatId = parseInt(chatId, 10);
 
       await this.replyWithScore(ctx, targetChatId);
     });
 
-    handleCommand(message, /^(запустить игру)/i, async () => {
+    handleCommand(message, /^(запусти игру)/i, async () => {
       await this.replyAndToggleGameState(ctx, true);
     });
 
-    handleCommand(message, /^(остановить игру)/i, async () => {
+    handleCommand(message, /^(останови игру)/i, async () => {
       await this.replyAndToggleGameState(ctx, false);
     });
   }
@@ -131,12 +131,13 @@ export class SquidGame extends BaseHandler {
     const scores = await this.buildScoreTable(null, chatId);
     const members = [];
 
-    for (const score of scores) {
+    for (const [index, score] of scores.entries()) {
       const member = await this.getChatMember(chatId, score.userId);
+      const place = `${index + 1}.`;
       const name = member.user.first_name;
       const username = member.user.username ? `(${member.user.username})` : ``;
 
-      members.push(`${name} ${username} → ${score.weightedScore} (${score.baseScore})`);
+      members.push(`${place} ${name} ${username} → ${score.weightedScore} (b: ${score.baseScore}) [q: ${score.difference}%]`);
     }
 
     return members.join('\n');
@@ -159,21 +160,6 @@ export class SquidGame extends BaseHandler {
     }
   }
 
-  private async notifyWithScore() {
-    const me = await this.bot.telegram.getMe();
-    const configurationRepository = Database.getRepository(Configuration);
-    const configurations = await configurationRepository.findBy({
-      enabled: true,
-      name: this.name,
-      botName: me.username,
-    });
-
-    for (const configuration of configurations) {
-      const scoreMessage = await this.formatScoreMessage(configuration.chatId);
-      await this.bot.telegram.sendMessage(configuration.chatId, scoreMessage);
-    }
-  }
-
   @checkAdmin({ errorMessage: FORBIDDEN_MESSAGE })
   private async replyWithScore(ctx: Context, targetChatId?: number) {
     const chatId = targetChatId || getChatId(ctx);
@@ -185,6 +171,6 @@ export class SquidGame extends BaseHandler {
   @checkAdmin({ errorMessage: FORBIDDEN_MESSAGE })
   private async replyAndToggleGameState(ctx: Context, active: boolean) {
     await this.saveSettings(ctx, { active });
-    await replyTo(ctx, active ? 'Игра запущена': 'Игра остановлена');
+    await replyTo(ctx, active ? 'В этом чате игра запущена': 'В этом чате игра приостановлена');
   }
 }

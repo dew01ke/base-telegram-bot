@@ -57,24 +57,24 @@ export class BaseHandler implements Handler {
     });
   }
 
-  private getConfig(ctx: Context): Configuration {
+  private getHandlerConfiguration(ctx: Context): Configuration {
     return ctx?.configurations?.[this.name] || {};
   }
 
   private isEnabled(ctx: Context): boolean {
-    return this.getConfig(ctx).enabled;
+    return this.getHandlerConfiguration(ctx).enabled;
   }
 
   private isAdmin(ctx: Context, userId: number): boolean {
-    return this.getConfig(ctx).admins?.includes(userId);
+    return this.getHandlerConfiguration(ctx).admins?.includes(userId);
   }
 
-  getSettingsFromContext(ctx: Context): ObjectLiteral<any> {
-    return this.getConfig(ctx).settings || {};
+  getSettings(ctx: Context): ObjectLiteral<any> {
+    return this.getHandlerConfiguration(ctx).settings || {};
   }
 
   async saveSettings(ctx: Context, actualSettings: object): Promise<ObjectLiteral<any>> {
-    const settings = this.getConfig(ctx).settings || {};
+    const settings = this.getHandlerConfiguration(ctx).settings || {};
     const updatedSettings = Object.assign({}, settings, actualSettings);
 
     const configurationRepository = Database.getRepository(Configuration);

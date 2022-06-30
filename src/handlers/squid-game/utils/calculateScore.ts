@@ -26,6 +26,7 @@ export interface UserScore {
   userId: number;
   baseScore: number;
   weightedScore: number;
+  difference: number;
 }
 
 function createScore(userId: number): UserScore {
@@ -33,6 +34,7 @@ function createScore(userId: number): UserScore {
     userId,
     baseScore: 0,
     weightedScore: 0,
+    difference: 0,
   }
 }
 
@@ -55,6 +57,10 @@ function calculateBaseScore(activities: Activity[]): ObjectLiteral<number> {
   }, {});
 }
 
+function difference(weightedScore: number, baseScore: number): number {
+  return Math.round(((weightedScore / baseScore) * 100) * 100) / 100;
+}
+
 export function calculateScoreByUsers(activities: Activity[], users: number[] = []): UserScore[] {
   const scores = createScoreObject(activities, users);
   const baseScores = calculateBaseScore(activities);
@@ -63,8 +69,9 @@ export function calculateScoreByUsers(activities: Activity[], users: number[] = 
   return scores
     .map((score) => ({
       ...score,
-      baseScore: baseScores[score.userId] ? Math.floor(baseScores[score.userId]) : 0,
-      weightedScore: weightedScores[score.userId] ? Math.floor(weightedScores[score.userId]) : 0,
+      baseScore: baseScores[score.userId] ? Math.ceil(baseScores[score.userId]) : 0,
+      weightedScore: weightedScores[score.userId] ? Math.ceil(weightedScores[score.userId]) : 0,
+      difference: difference(weightedScores[score.userId], baseScores[score.userId]),
     }))
     .sort((a, b) => (b.weightedScore - a.weightedScore));
 }

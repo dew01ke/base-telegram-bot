@@ -3,7 +3,7 @@ import { EventEmitter, SCHEDULER_EVENT_NAME } from '@/utils/events';
 import { safeJsonParse } from '@/utils/json';
 
 function isTriggerEvent(event) {
-  return event?.messages?.[0]?.details?.trigger_id
+  return event?.messages?.[0]?.details?.trigger_id;
 }
 
 export function handle(bot: Telegraf, events: EventEmitter) {

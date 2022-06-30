@@ -1,6 +1,5 @@
 import { BaseHandler } from '@/infrastructure/base/BaseHandler';
 import { Context } from '@/infrastructure/interfaces/Context';
-import { checkAdmin } from '@/infrastructure/decorators/checkAdmin';
 import { handleCommand } from '@/utils/telegram';
 
 export class Pes extends BaseHandler {
@@ -13,7 +12,7 @@ export class Pes extends BaseHandler {
   }
 
   private async replyWithPes(ctx: Context) {
-    const settings = this.getSettingsFromContext(ctx);
+    const settings = this.getSettings(ctx);
 
     if (settings.text) {
       await ctx.reply(settings.text);
