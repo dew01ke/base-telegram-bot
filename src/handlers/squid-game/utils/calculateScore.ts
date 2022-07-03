@@ -57,21 +57,21 @@ function calculateBaseScore(activities: Activity[]): ObjectLiteral<number> {
   }, {});
 }
 
-function difference(weightedScore: number, baseScore: number): number {
-  return Math.round(((weightedScore / baseScore) * 100) * 100) / 100;
-}
-
 export function calculateScoreByUsers(activities: Activity[], users: number[] = []): UserScore[] {
   const scores = createScoreObject(activities, users);
   const baseScores = calculateBaseScore(activities);
   const weightedScores = calculateWeightedScore(activities);
 
   return scores
-    .map((score) => ({
-      ...score,
-      baseScore: baseScores[score.userId] ? Math.ceil(baseScores[score.userId]) : 0,
-      weightedScore: weightedScores[score.userId] ? Math.ceil(weightedScores[score.userId]) : 0,
-      difference: difference(weightedScores[score.userId], baseScores[score.userId]),
-    }))
+    .map((score) => {
+      const baseScore = baseScores[score.userId] ? Math.ceil(baseScores[score.userId]) : 0;
+      const weightedScore = weightedScores[score.userId] ? Math.ceil(weightedScores[score.userId]) : 0;
+
+      return {
+        ...score,
+        baseScore,
+        weightedScore,
+      };
+    })
     .sort((a, b) => (b.weightedScore - a.weightedScore));
 }
