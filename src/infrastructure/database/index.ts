@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from '@/infrastructure/database/strategies/snake-naming.strategy';
 import { Configuration } from '@/infrastructure/entities/Configuration';
 import { Activity } from '@/handlers/squid-game/entities/Activity';
+import { Pub } from '@/handlers/pub/entities/Pub';
 import config, { Mode } from '@/infrastructure/config';
 
 export const Database = new DataSource({
@@ -17,7 +18,8 @@ export const Database = new DataSource({
   namingStrategy: new SnakeNamingStrategy(),
   entities: [
     Configuration,
-    Activity
+    Activity,
+    Pub,
   ],
   extra: {
     ssl: {

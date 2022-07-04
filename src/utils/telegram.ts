@@ -11,7 +11,7 @@ export function isMention(ctx: Context) {
     if (mentionName === `@${botName}`) {
       const [, ...payload] = message.split(' ');
 
-      return payload.join(' ');
+      return payload.join(' ').trim();
     }
 
     return mentionName === `@${botName}`;
